@@ -1,0 +1,21 @@
+{
+    "name":        "christopheraue/phpspy",
+    "description": "A test spy tracking calls to methods.",
+    "type":        "library",
+    "license":     "MIT",
+    "homepage":    "https://github.com/christopheraue/phpspy",
+    "authors": [
+	{
+            "name": "Christopher Aue",
+            "email": "mail@christopheraue.net",
+            "homepage": "http://christopheraue.net"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "ext-runkit": "*"
+    },
+    "autoload": {
+        "psr-4": {"christopheraue\\phpspy\\": ""}
+    }
+}
