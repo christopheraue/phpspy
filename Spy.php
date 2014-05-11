@@ -39,7 +39,7 @@ class Spy
         $spyName = $this->_classname.':'.$this->_methodname;
 
         if (array_key_exists($spyName, self::$_spies)) {
-            /** @var Gruenspar_PointWebservice_Test_Helper_Spy $spy */
+            /** @var christopheraue\phpspy\Spy $spy */
             $spy = self::$_spies[$spyName];
             $spy->kill();
         }
