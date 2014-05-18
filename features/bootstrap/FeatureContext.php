@@ -31,64 +31,39 @@ class FeatureContext extends BehatContext
      */
     public function __construct(array $parameters)
     {
-        // Initialize your context here
+        require_once dirname(__FILE__)."/Vip.php";
+        $this->_vip = new Vip();
+        $this->_spy = new \christopheraue\phpspy\Spy("Vip", "learnSecret");
     }
 
     /**
-     * @Given /^I have the class "([^"]*)"$/
+     * @When /^I call the spy\'s method ([^\s]*)$/
      */
-    public function iHaveTheClass($className)
+    public function iCallTheSpySMethod($methodName)
     {
-        require_once dirname(__FILE__)."/$className.php";
+        $this->_lastOutput = $this->_spy->$methodName();
     }
 
     /**
-     * @Given /^I have an instance "([^"]*)" of class "([^"]*)"$/
+     * @When /^I call the spy\'s method ([^\s]*) with: (.*)$/
      */
-    public function iHaveAnInstanceOfClass($instName, $className)
-    {
-        $this->_instances[$instName] = new $className();
-        $this->_lastOutput = $this->_instances[$instName];
-    }
-
-    /**
-     * @Given /^I set the spy "([^"]*)" on method "([^"]*)" of class "([^"]*)"$/
-     */
-    public function iSetTheSpyOnMethodOfClass($spyName, $methodName, $instName)
-    {
-        $this->_instances[$spyName] = new \christopheraue\phpspy\Spy($instName, $methodName);
-        $this->_lastOutput = $this->_instances[$spyName];
-    }
-
-    /**
-     * @Given /^I call method "([^"]*)" of "([^"]*)" with "([^"]*)"$/
-     */
-    public function iCallMethodOfWith($methodName, $instName, $argList)
+    public function iCallTheSpySMethodWith($methodName, $argList)
     {
         $args = explode(",", preg_replace('/\s*,\s*/', ',', $argList));
-        $this->_lastOutput = call_user_func_array(array($this->_instances[$instName], $methodName), $args);
+        $this->_lastOutput = call_user_func_array(array($this->_spy, $methodName), $args);
     }
 
     /**
-     * @Given /^I call method "([^"]*)" of "([^"]*)" with "([^"]*)" (\d+) times$/
+     * @Given /^Vip learns (\d+) secrets$/
      */
-    public function iCallMethodOfWithTimes($methodName, $instName, $argList, $counter)
+    public function vipLearnsSecrets($counter)
     {
         $output = array();
-        while($counter--) {
-            $this->iCallMethodOfWith($methodName, $instName, $argList);
-            $output[] = $this->_lastOutput;
+        for ($idx=0; $idx<$counter; $idx++) {
+            $output[] = $this->_vip->learnSecret("secret $idx", "source $idx");
         }
 
         $this->_lastOutput = implode("\n", $output);
-    }
-
-    /**
-     * @Given /^I call method "([^"]*)" of "([^"]*)"$/
-     */
-    public function iCallMethodOf($methodName, $instName)
-    {
-        $this->iCallMethodOfWith($methodName, $instName, "");
     }
 
     /**
