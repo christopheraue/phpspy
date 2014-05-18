@@ -61,22 +61,22 @@ class FeatureContext extends BehatContext
     }
 
     /**
-     * @Given /^I call method "([^"]*)" of instance "([^"]*)" with "([^"]*)"$/
+     * @Given /^I call method "([^"]*)" of "([^"]*)" with "([^"]*)"$/
      */
-    public function iCallMethodOfInstanceWith($methodName, $instName, $argList)
+    public function iCallMethodOfWith($methodName, $instName, $argList)
     {
-        $args = explode(",", $argList);
+        $args = explode(",", preg_replace('/\s*,\s*/', ',', $argList));
         $this->_lastOutput = call_user_func_array(array($this->_instances[$instName], $methodName), $args);
     }
 
     /**
-     * @Given /^I call method "([^"]*)" of instance "([^"]*)" with "([^"]*)" (\d+) times$/
+     * @Given /^I call method "([^"]*)" of "([^"]*)" with "([^"]*)" (\d+) times$/
      */
-    public function iCallMethodOfInstanceWithTimes($methodName, $instName, $argList, $counter)
+    public function iCallMethodOfWithTimes($methodName, $instName, $argList, $counter)
     {
         $output = array();
         while($counter--) {
-            $this->iCallMethodOfInstanceWith($methodName, $instName, $argList);
+            $this->iCallMethodOfWith($methodName, $instName, $argList);
             $output[] = $this->_lastOutput;
         }
 
@@ -84,11 +84,11 @@ class FeatureContext extends BehatContext
     }
 
     /**
-     * @Given /^I call method "([^"]*)" of instance "([^"]*)"$/
+     * @Given /^I call method "([^"]*)" of "([^"]*)"$/
      */
-    public function iCallMethodOfInstance($methodName, $instName)
+    public function iCallMethodOf($methodName, $instName)
     {
-        $this->iCallMethodOfInstanceWith($methodName, $instName, "");
+        $this->iCallMethodOfWith($methodName, $instName, "");
     }
 
     /**
@@ -104,9 +104,11 @@ class FeatureContext extends BehatContext
      */
     public function iShouldGet(PyStringNode $string)
     {
-        if ((string) $string !== implode("\n", $this->_output)) {
+        $output = implode("\n", $this->_output);
+
+        if ((string) $string !== $output) {
             throw new Exception(
-                "Actual output is:\n" . $this->_output
+                "Actual output is:\n" . $output
             );
         }
     }
