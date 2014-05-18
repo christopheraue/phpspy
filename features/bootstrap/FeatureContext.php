@@ -34,7 +34,6 @@ class FeatureContext extends BehatContext
     {
         require_once dirname(__FILE__)."/Vip.php";
         $this->_vip = new Vip();
-        $this->_spy = new \christopheraue\phpspy\Spy("Vip", "learnSecret");
     }
 
     /**
@@ -51,6 +50,14 @@ class FeatureContext extends BehatContext
     public function iGetTheCallSArgumentWithIndex($argIdx)
     {
         $this->_lastOutput = $this->_lastOutput->getArg($argIdx);
+    }
+
+    /**
+     * @Given /^I get the call\'s return value$/
+     */
+    public function iGetTheCallSReturnValue()
+    {
+        $this->_lastOutput = $this->_lastOutput->getResult();
     }
 
     /**
@@ -76,13 +83,30 @@ class FeatureContext extends BehatContext
      */
     public function vipLearnsSecrets($counter)
     {
+        if (!$this->_spy) {
+            $this->_spy = new \christopheraue\phpspy\Spy("Vip", "learnSecret");
+        }
+
         $output = array();
         for ($idx=0; $idx<$counter; $idx++) {
             $output[] = $this->_vip->learnSecret("secret $idx", "source $idx");
         }
 
-        $this->_lastOutput = implode("\n", $output);
+        //$this->_lastOutput = implode("\n", $output);
     }
+
+     /**
+     * @Given /^Vip tells the secret "([^"]*)"$/
+     */
+    public function vipTellsTheSecret($secret)
+    {
+        if (!$this->_spy) {
+            $this->_spy = new \christopheraue\phpspy\Spy("Vip", "tellSecret");
+        }
+
+        $this->_vip->tellSecret($secret);
+    }
+
 
     /**
      * @Given /^echo the result$/
