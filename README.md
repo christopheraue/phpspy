@@ -52,7 +52,7 @@ Public methods:
 ```php
 class VIP
 {
-    private _secret;
+    private $_secret;
 
     public function learnSecret($secret)
     {
@@ -66,5 +66,5 @@ $vip = new VIP();
 $vip->learnSecret("The cake is a lie.")
 
 $secret = $spy->getLastCallArgument(0);
-print($secret)  //"The cake is a lie."
+echo $secret  //"The cake is a lie."
 ```

@@ -19,6 +19,10 @@ use Behat\Gherkin\Node\PyStringNode,
  */
 class FeatureContext extends BehatContext
 {
+    private $_output = array();
+    private $_lastOutput;
+    private $_instances = array();
+
     /**
      * Initializes context.
      * Every scenario gets it's own context object.
@@ -30,15 +34,80 @@ class FeatureContext extends BehatContext
         // Initialize your context here
     }
 
-//
-// Place your definition and hook methods here:
-//
-//    /**
-//     * @Given /^I have done something with "([^"]*)"$/
-//     */
-//    public function iHaveDoneSomethingWith($argument)
-//    {
-//        doSomethingWith($argument);
-//    }
-//
+    /**
+     * @Given /^I have the class "([^"]*)"$/
+     */
+    public function iHaveTheClass($className)
+    {
+        require_once dirname(__FILE__)."/$className.php";
+    }
+
+    /**
+     * @Given /^I have an instance "([^"]*)" of class "([^"]*)"$/
+     */
+    public function iHaveAnInstanceOfClass($instName, $className)
+    {
+        $this->_instances[$instName] = new $className();
+        $this->_lastOutput = $this->_instances[$instName];
+    }
+
+    /**
+     * @Given /^I set the spy "([^"]*)" on method "([^"]*)" of class "([^"]*)"$/
+     */
+    public function iSetTheSpyOnMethodOfClass($spyName, $methodName, $instName)
+    {
+        $this->_instances[$spyName] = new \christopheraue\phpspy\Spy($instName, $methodName);
+        $this->_lastOutput = $this->_instances[$spyName];
+    }
+
+    /**
+     * @Given /^I call method "([^"]*)" of instance "([^"]*)" with "([^"]*)"$/
+     */
+    public function iCallMethodOfInstanceWith($methodName, $instName, $argList)
+    {
+        $args = explode(",", $argList);
+        $this->_lastOutput = call_user_func_array(array($this->_instances[$instName], $methodName), $args);
+    }
+
+    /**
+     * @Given /^I call method "([^"]*)" of instance "([^"]*)" with "([^"]*)" (\d+) times$/
+     */
+    public function iCallMethodOfInstanceWithTimes($methodName, $instName, $argList, $counter)
+    {
+        $output = array();
+        while($counter--) {
+            $this->iCallMethodOfInstanceWith($methodName, $instName, $argList);
+            $output[] = $this->_lastOutput;
+        }
+
+        $this->_lastOutput = implode("\n", $output);
+    }
+
+    /**
+     * @Given /^I call method "([^"]*)" of instance "([^"]*)"$/
+     */
+    public function iCallMethodOfInstance($methodName, $instName)
+    {
+        $this->iCallMethodOfInstanceWith($methodName, $instName, "");
+    }
+
+    /**
+     * @Given /^echo the result$/
+     */
+    public function echoTheResult()
+    {
+        $this->_output[] = $this->_lastOutput;
+    }
+
+    /**
+     * @Then /^I should get:$/
+     */
+    public function iShouldGet(PyStringNode $string)
+    {
+        if ((string) $string !== implode("\n", $this->_output)) {
+            throw new Exception(
+                "Actual output is:\n" . $this->_output
+            );
+        }
+    }
 }
