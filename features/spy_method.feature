@@ -18,32 +18,38 @@ Feature: Spy for object methods
       | 1 |
       | 5 |
 
-  Scenario Outline: Using getCallArgument to get arguments of each call
+  Scenario Outline: Using getCall to get tracked calls
     Given Vip learns 3 secrets
-    When I call the spy's method getCallArgument with: <call>, 0
-      And echo the result
-      And I call the spy's method getCallArgument with: <call>, 1
+    When I get the spied call with index <callIdx>
+      And I get the call's argument with index 0
       And echo the result
     Then I should get:
       """
-      secret <call>
-      source <call>
+      secret <realCallIdx>
+      """
+
+  Examples:
+    | callIdx | realCallIdx |
+    |   -3    |      0      |
+    |   -2    |      1      |
+    |   -1    |      2      |
+    |    0    |      0      |
+    |    1    |      1      |
+    |    2    |      2      |
+
+  Scenario Outline: Using getCall->getArg to get arguments of each call
+    Given Vip learns 1 secret
+    When I get the spied call with index 0
+      And I get the call's argument with index <argIdx>
+      And echo the result
+    Then I should get:
+      """
+      <arg>
       """
 
     Examples:
-      | call |
-      |  0   |
-      |  1   |
-      |  2   |
-
-  Scenario: Using getLastCallArgument to get the arguments of the last call
-    Given Vip learns 3 secrets
-    When I call the spy's method getLastCallArgument with: 0
-      And echo the result
-      And I call the spy's method getLastCallArgument with: 1
-      And echo the result
-    Then I should get:
-      """
-      secret 2
-      source 2
-      """
+      | argIdx |     arg    |
+      |   -2   |  secret 0  |
+      |   -1   |  source 0  |
+      |    0   |  secret 0  |
+      |    1   |  source 0  |

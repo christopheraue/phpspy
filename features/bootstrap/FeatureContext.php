@@ -21,7 +21,8 @@ class FeatureContext extends BehatContext
 {
     private $_output = array();
     private $_lastOutput;
-    private $_instances = array();
+    private $_vip = null;
+    private $_spy = null;
 
     /**
      * Initializes context.
@@ -37,12 +38,29 @@ class FeatureContext extends BehatContext
     }
 
     /**
-     * @When /^I call the spy\'s method ([^\s]*)$/
+     * @When /^I get the spied call with index ([+-]?\d+)$/
+     */
+    public function iGetTheSpiedCallWithIndex($callIdx)
+    {
+        $this->_lastOutput = $this->_spy->getCall($callIdx);
+    }
+
+    /**
+     * @Given /^I get the call\'s argument with index ([+-]?\d+)$/
+     */
+    public function iGetTheCallSArgumentWithIndex($argIdx)
+    {
+        $this->_lastOutput = $this->_lastOutput->getArg($argIdx);
+    }
+
+    /**
+     * @When /^I call the spy\'s method ([^ ]*)$/
      */
     public function iCallTheSpySMethod($methodName)
     {
         $this->_lastOutput = $this->_spy->$methodName();
     }
+
 
     /**
      * @When /^I call the spy\'s method ([^\s]*) with: (.*)$/
@@ -54,7 +72,7 @@ class FeatureContext extends BehatContext
     }
 
     /**
-     * @Given /^Vip learns (\d+) secrets$/
+     * @Given /^Vip learns (\d+) secrets?$/
      */
     public function vipLearnsSecrets($counter)
     {

@@ -39,7 +39,7 @@ class Spy
         $spyName = $this->_classname.':'.$this->_methodname;
 
         if (array_key_exists($spyName, self::$_spies)) {
-            /** @var christopheraue\phpspy\Spy $spy */
+            /** @var \christopheraue\phpspy\Spy $spy */
             $spy = self::$_spies[$spyName];
             $spy->kill();
         }
@@ -65,11 +65,13 @@ class Spy
             '',
             '$args = func_get_args();
 
+            $result = call_user_func_array(array($this, "'.$this->_methodname.'_original"), $args);
+
             $spyName = "'.$spyName.'";
             $spy = '.$spyClassname.'::$_spies[$spyName];
-            $spy->recordCall($args);
+            $spy->recordCall($args, $result);
 
-            return call_user_func_array(array($this, "'.$this->_methodname.'_original"), $args);'
+            return $result;'
         );
 
         if (!method_exists($this->_classname, $this->_methodname.'_original')) {
@@ -93,13 +95,15 @@ class Spy
     /**
      * Save a call to the method
      *
-     * @param array $args Arguments the method was called with
+     * @param array $args   Arguments the method was called with
+     * @param mixed $result Return value of the call
      *
      * @return void
      */
-    public function recordCall(array $args)
+    public function recordCall(array $args, $result)
     {
-        array_push($this->_calls, $args);
+        $call = new Spy\Call($args, $result);
+        array_push($this->_calls, $call);
     }
 
     /**
@@ -110,16 +114,6 @@ class Spy
     public function reset()
     {
         $this->_calls = array();
-    }
-
-    /**
-     * Return tracked calls of a class' method
-     *
-     * @return array
-     */
-    public function getCalls()
-    {
-        return $this->_calls;
     }
 
     /**
@@ -135,49 +129,23 @@ class Spy
     /**
      * Return a specific call
      *
-     * @param int $idx Index indicating the nth call
+     * @param int $idx Index indicating the nth call,
+     * negative indices get call from the back of the list
      *
      * @return array
+     * @throws \Exception
      */
     public function getCall($idx)
     {
+        if (!is_numeric($idx)) {
+            throw new \Exception('$idx must be an integer.');
+        }
+
+        if ($idx < 0) {
+            return $this->_calls[count($this->_calls)+$idx];
+        }
+
         return $this->_calls[$idx];
-    }
-
-    /**
-     * Return the last tracked call
-     *
-     * @return array
-     */
-    public function getLastCall()
-    {
-        return $this->_calls[$this->getCallCount()-1];
-    }
-
-    /**
-     * Return a specific argument of a specific call
-     *
-     * @param int $callIdx Index indicating the nth call
-     * @param int $argIdx  Index indicating the mth argument of the nth call
-     *
-     * @return array
-     */
-    public function getCallArgument($callIdx, $argIdx)
-    {
-        return $this->_calls[$callIdx][$argIdx];
-    }
-
-    /**
-     * Return a specific argument of the last tracked call
-     *
-     * @param int $argIdx Index indicating the mth argument of the nth call
-     *
-     * @return array
-     */
-    public function getLastCallArgument($argIdx)
-    {
-        $lastCall = $this->getLastCall();
-        return $lastCall[$argIdx];
     }
 
     /**
