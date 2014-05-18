@@ -1,11 +1,11 @@
 PHP Spy
 =======
 
-Spy on a class' methods and track the arguments it was called with. The spy does not interfer with the default behavior of the code. So, spied methods are still executed.
+Spy on a class' methods and track the arguments it was called with. The spy does not interfere with the default behavior of the code. So, spied methods are still executed.
 
 Why?
 ----
-To make code testing more comfortable. Especially, if you just want to check, that a method was called and recieved the correct arguments.
+To make code testing more comfortable. Especially, if you just want to check, that a method was called and received the correct arguments.
 
 Requirements
 ------------
@@ -14,9 +14,6 @@ Requirements
 
 Installation
 ------------
-### Manual
-Copy *Spy.php* into your project and include it.
-
 ### Via Composer
 Add to your *composer.json*:
 
@@ -40,13 +37,13 @@ Constructor: new \\christopheraue\\phpspy\\Spy($classname, $methodname)
 
 Public methods:
 * reset(): Resets the spy by deleting all tracked calls.
-* getCalls(): Returns all tracked calls.
-* getCallCount(): Return sthe count of tracked calls.
-* getCall($n): Returns the nth tracked call.
-* getLastCall(): Returns the last tracked call.
-* getCallArgument($n, $m): Returns the mth argument of the nth tracked call.
-* getLastCallArgument($m): Returns the mth argument of the last tracked call.
+* getCallCount(): Returns the count of tracked calls.
+* getCall($n): Returns the nth tracked call. Negative $n get calls from the back of the list.
 * kill(): Deletes all tracked calls, stops tracking further calls and kills the spy.
+
+Calls are objects on their own. The have the following interface:
+* getArg($n): Returns the nth argument of the call. Negative $n get arguments from the back of the list.
+* getResult(): Returns the return value of the call.
 
 ### Basic Example
 ```php
@@ -59,12 +56,12 @@ class VIP
         $this->_secret = $secret;
     }
 }
+$vip = new VIP();
 
 $spy = new \christopheraue\phpspy\Spy("VIP", "learnSecret");
 
-$vip = new VIP();
 $vip->learnSecret("The cake is a lie.")
 
-$secret = $spy->getLastCallArgument(0);
+$secret = $spy->getCall(0)->getArg(0);
 echo $secret  //"The cake is a lie."
 ```

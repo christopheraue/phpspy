@@ -56,7 +56,7 @@ Feature: Spy for object methods
 
   Scenario: Using getCall->getResult to get the return value of a call
     Given Vip tells the secret "meaning of life = 42"
-      When I get the spied call with index 0
+    When I get the spied call with index 0
       And I get the call's return value
       And echo the result
     Then I should get:
