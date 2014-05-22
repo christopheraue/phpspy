@@ -10,7 +10,7 @@ To make code testing more comfortable. Especially, if you just want to check, th
 Requirements
 ------------
 * PHP > 5.3
-* [runkit](https://github.com/php/pecl-php-runkit)
+* [runkit](https://github.com/zenovich/runkit)
 
 Installation
 ------------
