@@ -19,10 +19,7 @@ use Behat\Gherkin\Node\PyStringNode,
  */
 class FeatureContext extends BehatContext
 {
-    private $_output = array();
-    private $_lastOutput;
-    private $_vip = null;
-    private $_spy = null;
+    private $_objects = array();
 
     /**
      * Initializes context.
@@ -32,101 +29,85 @@ class FeatureContext extends BehatContext
      */
     public function __construct(array $parameters)
     {
-        require_once dirname(__FILE__)."/Vip.php";
-        $this->_vip = new Vip();
+
     }
 
     /**
-     * @When /^I get the spied call with index ([+-]?\d+)$/
+     * @Given /^There is an object "([^"]*)" derived from class "([^"]*)"/
      */
-    public function iGetTheSpiedCallWithIndex($callIdx)
+    public function thereIsAnObjectDerivedFromClass($objectname, $classname)
     {
-        $this->_lastOutput = $this->_spy->getCall($callIdx);
+        require_once dirname(__FILE__)."/".$classname.".php";
+        $this->_objects[$objectname] = new $classname();
     }
 
     /**
-     * @Given /^I get the call\'s argument with index ([+-]?\d+)$/
+     * @Given /^There is a spy "([^"]*)" spying on method "([^"]*)" of "([^"]*)"$/
      */
-    public function iGetTheCallSArgumentWithIndex($argIdx)
+    public function thereIsASpySpyingOnMethodOf($spy, $method, $classname)
     {
-        $this->_lastOutput = $this->_lastOutput->getArg($argIdx);
+        $this->_objects[$spy] = new \christopheraue\phpspy\Spy($classname, $method);
     }
 
     /**
-     * @Given /^I get the call\'s return value$/
+     * @When /^"([^"]+)" ([^\s]+)s (\d+) ([^\s]+[^s])s?(?:: (.+))?$/
      */
-    public function iGetTheCallSReturnValue()
+    public function doesAThingMultipleTimes($subject, $verb, $counter, $object, $args)
     {
-        $this->_lastOutput = $this->_lastOutput->getResult();
-    }
-
-    /**
-     * @When /^I call the spy\'s method ([^ ]*)$/
-     */
-    public function iCallTheSpySMethod($methodName)
-    {
-        $this->_lastOutput = $this->_spy->$methodName();
-    }
-
-
-    /**
-     * @When /^I call the spy\'s method ([^\s]*) with: (.*)$/
-     */
-    public function iCallTheSpySMethodWith($methodName, $argList)
-    {
-        $args = explode(",", preg_replace('/\s*,\s*/', ',', $argList));
-        $this->_lastOutput = call_user_func_array(array($this->_spy, $methodName), $args);
-    }
-
-    /**
-     * @Given /^Vip learns (\d+) secrets?$/
-     */
-    public function vipLearnsSecrets($counter)
-    {
-        if (!$this->_spy) {
-            $this->_spy = new \christopheraue\phpspy\Spy("Vip", "learnSecret");
-        }
-
-        $output = array();
         for ($idx=0; $idx<$counter; $idx++) {
-            $output[] = $this->_vip->learnSecret("secret $idx", "source $idx");
+            $callArgs = str_replace(",", $idx.",", $args);
+            $this->doesAThing($subject, $verb, $object, $callArgs);
         }
-
-        //$this->_lastOutput = implode("\n", $output);
     }
 
      /**
-     * @Given /^Vip tells the secret "([^"]*)"$/
+     * @When /^"([^"]+)" ([^\s]+)s the ([^\s]+)(?:: (.+))?$/
      */
-    public function vipTellsTheSecret($secret)
+    public function doesAThing($subject, $verb, $object, $args)
     {
-        if (!$this->_spy) {
-            $this->_spy = new \christopheraue\phpspy\Spy("Vip", "tellSecret");
-        }
-
-        $this->_vip->tellSecret($secret);
+        $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
+        $methodName = $verb.ucfirst($object);
+        call_user_func_array(array($this->_objects[$subject], $methodName), $args);
     }
 
-
-    /**
-     * @Given /^echo the result$/
+     /**
+     * @Then /^"([^"]*)" should have tracked (\d+) calls$/
      */
-    public function echoTheResult()
+    public function shouldHaveTrackedCalls($spy, $count)
     {
-        $this->_output[] = $this->_lastOutput;
+        return $this->_objects[$spy]->getCallCount() == $count;
     }
 
     /**
-     * @Then /^I should get:$/
+     * @Then /^The (\d+)th call tracked by "([^"]*)" should be the call with the ([+-]?\d+)th learned secret$/
      */
-    public function iShouldGet(PyStringNode $string)
+    public function theThCallTrackedByShouldBeTheCallWithTheThLearnedSecret($callIdx, $spy, $secretIdx)
     {
-        $output = implode("\n", $this->_output);
-
-        if ((string) $string !== $output) {
-            throw new Exception(
-                "Actual output is:\n" . $output
-            );
-        }
+        return $this->_objects[$spy]->getCall($callIdx)->getArg(0) == "secret".$secretIdx;
     }
+
+    /**
+     * @Then /^The call tracked by "([^"]*)" received the argument "([^"]*)" at position ([+-]?\d+)$/
+     */
+    public function theCallTrackedByReceivedTheArgumentSecretAtPosition($spy, $arg, $argPos)
+    {
+        return $this->_objects[$spy]->getCall(0)->getArg($argPos) == $arg;
+    }
+
+    /**
+     * @Then /^The call tracked by "([^"]*)" returned the result "([^"]*)"$/
+     */
+    public function theCallTrackedByReturnedTheResult($spy, $result)
+    {
+        return $this->_objects[$spy]->getCall(0)->getResult() == $result;
+    }
+
+    /**
+     * @Then /^The call tracked by "([^"]*)" was in the context of "([^"]*)"$/
+     */
+    public function theCallTrackedByWasInTheContextOf($spy, $object)
+    {
+        return $this->_objects[$spy]->getCall(0)->getContext() == $this->_objects[$object];
+    }
+
 }
