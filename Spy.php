@@ -11,7 +11,7 @@ namespace christopheraue\phpspy;
 
 class Spy
 {
-    public static $_spies = array();
+    protected static $_spies = array();
 
     protected $_classname = null;
     protected $_methodname = null;
@@ -26,9 +26,10 @@ class Spy
     public function __construct($classname, $methodname)
     {
 
-        //runkit seems not to know classes that were not already loaded
-        //fix it by creating an instance here and throw it away
-        $klass = new $classname();
+        if (!class_exists($classname)) {
+            //try to load it via autoloading, or fail
+            new $classname();
+        }
 
         //Sometimes $classname and $methodname are transfered to this constructer in all lower case
         //although they were given in camel case. Strange behavior. Doesn't matter, since PHP
@@ -36,7 +37,7 @@ class Spy
         $this->_classname = strtolower($classname);
         $this->_methodname = strtolower($methodname);
 
-        $spyName = $this->_classname.':'.$this->_methodname;
+        $spyName = $this->_classname.'::'.$this->_methodname;
 
         if (array_key_exists($spyName, self::$_spies)) {
             /** @var \christopheraue\phpspy\Spy $spy */
@@ -56,20 +57,16 @@ class Spy
      */
     protected function _replaceMethod()
     {
-        $spyName = $this->_classname.':'.$this->_methodname;
-
         $spyClassname = __CLASS__;
         runkit_method_add(
             $this->_classname,
             $this->_methodname.'_spy',
             '',
             '$args = func_get_args();
-
             $result = call_user_func_array(array($this, "'.$this->_methodname.'_original"), $args);
 
-            $spyName = "'.$spyName.'";
-            $spy = '.$spyClassname.'::$_spies[$spyName];
-            $spy->recordCall($args, $result);
+            $spy = '.$spyClassname.'::getSpy($this, "'.$this->_methodname.'");
+            $result = $spy->recordCall($this, $args, $result);
 
             return $result;'
         );
@@ -92,17 +89,31 @@ class Spy
             return call_user_func_array(array($this, "'.$this->_methodname.'_spy"), $args);'
         );
     }
+
+    /**
+     * @param object $instance   Context the function was called in
+     * @param string $methodname Name of the function
+     *
+     * @return Spy
+     */
+    public static function getSpy($instance, $methodname)
+    {
+        $classname = strtolower(get_class($instance));
+        return self::$_spies[$classname.'::'.$methodname];
+    }
+
     /**
      * Save a call to the method
      *
-     * @param array $args   Arguments the method was called with
-     * @param mixed $result Return value of the call
+     * @param mixed $context Context the function was called in
+     * @param array $args    Arguments the function was called with
+     * @param mixed $result  Return value of the call
      *
      * @return void
      */
-    public function recordCall(array $args, $result)
+    public function recordCall($context, array $args, $result)
     {
-        $call = new Spy\Call($args, $result);
+        $call = new Spy\Call($context, $args, $result);
         array_push($this->_calls, $call);
     }
 
@@ -164,6 +175,6 @@ class Spy
             '$args = func_get_args();
             return call_user_func_array(array($this, "'.$this->_methodname.'_original"), $args);'
         );
-        unset(self::$_spies[$this->_classname.':'.$this->_methodname]);
+        unset(self::$_spies[$this->_classname.'::'.$this->_methodname]);
     }
 }

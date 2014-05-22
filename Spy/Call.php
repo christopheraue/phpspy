@@ -13,17 +13,20 @@ namespace christopheraue\phpspy\Spy;
 
 class Call
 {
+    protected $_context;
     protected $_args;
     protected $_result;
 
     /**
      * Create a call
      *
-     * @param array $args   Array with arguments of the call
-     * @param mixed $result Result of the call
+     * @param mixed $context Context the function was called in
+     * @param array $args    Array with arguments of the call
+     * @param mixed $result  Result of the call
      */
-    public function __construct($args, $result)
+    public function __construct($context, $args, $result)
     {
+        $this->_context = $args;
         $this->_args = $args;
         $this->_result = $result;
     }
@@ -58,5 +61,15 @@ class Call
     public function getResult()
     {
         return $this->_result;
+    }
+
+    /**
+     * Get the call's context
+     *
+     * @return mixed
+     */
+    public function getContext()
+    {
+        return $this->_context;
     }
 }
