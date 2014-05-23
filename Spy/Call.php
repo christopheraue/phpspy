@@ -32,6 +32,16 @@ class Call
     }
 
     /**
+     * Get the total number of arguments the call was called with
+     *
+     * @return int
+     */
+    public function getArgCount()
+    {
+        return count($this->_args);
+    }
+
+    /**
      * Get an argument of the call
      *
      * @param int $idx Index of the argument to get,

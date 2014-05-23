@@ -67,6 +67,14 @@ class FeatureContext extends BehatContext
     }
 
     /**
+     * @Then /^The call tracked by "([^"]*)" received (\d+) arguments$/
+     */
+    public function theCallTrackedByReceivedArguments($spy, $argN)
+    {
+        return $this->objects[$spy]->getCall(0)->getArgCount() == $argN;
+    }
+
+    /**
      * @Then /^The call tracked by "([^"]*)" received the argument "([^"]*)" at position ([+-]?\d+)$/
      */
     public function theCallTrackedByReceivedTheArgumentSecretAtPosition($spy, $arg, $argPos)

@@ -36,6 +36,10 @@ Feature: Spy for object methods
     |  1 | 1 |
     |  2 | 2 |
 
+  Scenario: Getting the number of arguments a method was called with
+    When "klass" calls method "id" with: 1, 2, 3, 4
+    Then The call tracked by "spy" received 4 arguments
+
   Scenario Outline: Getting the arguments a method was called with
     When "klass" calls method "id" with: 1, 2
     Then The call tracked by "spy" received the argument "<arg>" at position <argIdx>

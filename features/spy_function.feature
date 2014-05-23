@@ -36,6 +36,10 @@ Feature: Spy for functions
     |  1 | 1 |
     |  2 | 2 |
 
+  Scenario: Getting the number of arguments a function was called with
+    When "id" is called with: 1, 2, 3, 4
+    Then The call tracked by "spy" received 4 arguments
+
   Scenario Outline: Getting the arguments a function was called with
     When "id" is called with: 1, 2
     Then The call tracked by "spy" received the argument "<arg>" at position <argIdx>
