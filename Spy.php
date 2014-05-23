@@ -145,6 +145,7 @@ class Spy
 
     /**
      * Get a spy belonging to a function or method of a class or object
+     * (for internal use only)
      *
      * @param object $context    Context the function was called in
      * @param string $methodName Name of the function
