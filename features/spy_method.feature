@@ -6,6 +6,11 @@ Feature: Spy for object methods
   Background:
     Given There is an object "vip" derived from class "Vip"
 
+  Scenario: Spying on a method leaves its behavior intact
+    Given There is a spy "spy" spying on method "tellSecret" of "Vip"
+    When "vip" tells the secret: meaning of life = 42
+    Then It should have the result: meaning of life = 42
+
   Scenario Outline: Tracking the correct amount of calls
     Given There is a spy "spy" spying on method "learnSecret" of "Vip"
     When "vip" learns <n> secrets: secret
@@ -52,3 +57,15 @@ Feature: Spy for object methods
     Given There is a spy "spy" spying on method "tellSecret" of "Vip"
     When "vip" tells the secret: secret
     Then The call tracked by "spy" was in the context of "vip"
+
+  Scenario: Resetting a spy deletes all tracked calls
+    Given There is a spy "spy" spying on method "tellSecret" of "Vip"
+      And "vip" tells 3 secrets: secret
+    When "spy" is reset
+    Then "spy" should have tracked 0 calls
+
+  Scenario: Killing a spy that spied on a method leaves its behavior intact
+    Given There is a spy "spy" spying on method "tellSecret" of "Vip"
+    When "spy" is killed
+    And "vip" tells the secret: meaning of life = 42
+    Then It should have the result: meaning of life = 42

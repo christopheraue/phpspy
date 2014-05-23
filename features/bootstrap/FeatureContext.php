@@ -19,6 +19,7 @@ use Behat\Gherkin\Node\PyStringNode,
  */
 class FeatureContext extends BehatContext
 {
+    private $_lastResult;
     private $_objects = array();
 
     /**
@@ -54,10 +55,12 @@ class FeatureContext extends BehatContext
      */
     public function doesAThingMultipleTimes($subject, $verb, $counter, $object, $args)
     {
+        $results = array();
         for ($idx=0; $idx<$counter; $idx++) {
             $callArgs = str_replace(",", $idx.",", $args);
-            $this->doesAThing($subject, $verb, $object, $callArgs);
+            $results[] = $this->doesAThing($subject, $verb, $object, $callArgs);
         }
+        $this->_lastResult = implode("\n", $results);
     }
 
      /**
@@ -67,8 +70,26 @@ class FeatureContext extends BehatContext
     {
         $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
         $methodName = $verb.ucfirst($object);
-        call_user_func_array(array($this->_objects[$subject], $methodName), $args);
+        $this->_lastResult = call_user_func_array(array($this->_objects[$subject], $methodName), $args);
     }
+
+    /**
+     * @When /^"([^"]*)" (?:is|was|has been) ([^\s]+[^ed])(?:ed)?$/
+     */
+    public function isDoneWith($object, $verb)
+    {
+        $this->_lastResult = $this->_objects[$object]->$verb();
+    }
+
+
+    /**
+     * @Then /^It should have the result: (.+)$/
+     */
+    public function itShouldHaveTheResult($result)
+    {
+        return $this->_lastResult = $result;
+    }
+
 
      /**
      * @Then /^"([^"]*)" should have tracked (\d+) calls$/
