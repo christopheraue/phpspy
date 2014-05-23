@@ -1,7 +1,7 @@
 PHP Spy
 =======
 
-Spy on a class' methods and track the arguments it was called with. The spy does not interfere with the default behavior of the code. So, spied methods are still executed.
+Spy on functions and methods and track the arguments they were called with. The spy does not interfere with the default behavior of the code. So, spied functions are still executed.
 
 Why?
 ----
@@ -33,19 +33,24 @@ Add to your *composer.json*:
 
 Usage
 -----
-Constructor: new \\christopheraue\\phpspy\\Spy($classname, $methodname)
+Constructor
+- to spy on methods: new \\christopheraue\\phpspy\\Spy($className, $methodName)
+- to spy on functions: new \\christopheraue\\phpspy\\Spy($functionName)
 
-Public methods:
-* reset(): Resets the spy by deleting all tracked calls.
-* getCallCount(): Returns the count of tracked calls.
-* getCall($n): Returns the nth tracked call. Negative $n get calls from the back of the list.
-* kill(): Deletes all tracked calls, stops tracking further calls and kills the spy.
+Public methods of the spy:
+* getCallCount(): Returns the number of recorded calls.
+* getCall($n): Returns the nth recorded call. Negative $n get calls from the back of the list.
+* reset(): Resets the spy by deleting all recorded calls.
+* kill(): Deletes all recorded calls, stops recording further calls and kills the spy.
 
 Calls are objects on their own. The have the following interface:
+* getArgCount(): Returns the number of recorded arguments
 * getArg($n): Returns the nth argument of the call. Negative $n get arguments from the back of the list.
 * getResult(): Returns the return value of the call.
+* getContext(): Returns `null` for functions and an object for methods
 
 ### Basic Example
+#### Spying on methods
 ```php
 class VIP
 {
@@ -62,6 +67,26 @@ $spy = new \christopheraue\phpspy\Spy("VIP", "learnSecret");
 
 $vip->learnSecret("The cake is a lie.")
 
-$secret = $spy->getCall(0)->getArg(0);
-echo $secret  //"The cake is a lie."
+echo $spy->getCallCount();           //1
+echo $spy->getCall(0)->getArg(0);    //"The cake is a lie."
+echo $spy->getCall(0)->getContext(); //$vip
+```
+
+#### Spying on functions
+```php
+function id($in)
+{
+    return $in;
+}
+
+$spy = new \christopheraue\phpspy\Spy("id");
+
+id(1);
+id(2);
+id(3);
+
+echo $spy->getCallCount();           //3
+echo $spy->getCall->getArgCount();   //1
+echo $spy->getCall(1)->getResult();  //2
+echo $spy->getCall(0)->getContext(); //null
 ```
