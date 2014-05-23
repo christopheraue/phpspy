@@ -24,8 +24,10 @@ Feature: Spy for object methods
 
   Scenario Outline: Getting individual calls of methods
     Given There is a spy "spy" spying on method "learnSecret" of "Vip"
-    When "vip" learns 3 secrets: secret
-    Then The <n>th call tracked by "spy" should be the call with the <m>th learned secret
+    When "vip" learns the secret: 0
+      And "vip" learns the secret: 1
+      And "vip" learns the secret: 2
+    Then The <m>th requested call tracked by "spy" should be its <n>th tracked call
 
   Examples:
     |  m | n |

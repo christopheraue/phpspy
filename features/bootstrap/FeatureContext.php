@@ -19,8 +19,8 @@ use Behat\Gherkin\Node\PyStringNode,
  */
 class FeatureContext extends BehatContext
 {
-    private $_lastResult;
-    private $_objects = array();
+    public $lastResult;
+    public $objects = array( "null" => null );
 
     /**
      * Initializes context.
@@ -30,24 +30,8 @@ class FeatureContext extends BehatContext
      */
     public function __construct(array $parameters)
     {
-
-    }
-
-    /**
-     * @Given /^There is an object "([^"]*)" derived from class "([^"]*)"/
-     */
-    public function thereIsAnObjectDerivedFromClass($objectname, $classname)
-    {
-        require_once dirname(__FILE__)."/".$classname.".php";
-        $this->_objects[$objectname] = new $classname();
-    }
-
-    /**
-     * @Given /^There is a spy "([^"]*)" spying on method "([^"]*)" of "([^"]*)"$/
-     */
-    public function thereIsASpySpyingOnMethodOf($spy, $method, $classname)
-    {
-        $this->_objects[$spy] = new \christopheraue\phpspy\Spy($classname, $method);
+        $this->useContext('spyMethod', new SpyMethodFeatureContext($parameters));
+        $this->useContext('spyFunction', new SpyFunctionFeatureContext($parameters));
     }
 
     /**
@@ -60,7 +44,7 @@ class FeatureContext extends BehatContext
             $callArgs = str_replace(",", $idx.",", $args);
             $results[] = $this->doesAThing($subject, $verb, $object, $callArgs);
         }
-        $this->_lastResult = implode("\n", $results);
+        $this->lastResult = implode("\n", $results);
     }
 
      /**
@@ -70,7 +54,7 @@ class FeatureContext extends BehatContext
     {
         $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
         $methodName = $verb.ucfirst($object);
-        $this->_lastResult = call_user_func_array(array($this->_objects[$subject], $methodName), $args);
+        $this->lastResult = call_user_func_array(array($this->objects[$subject], $methodName), $args);
     }
 
     /**
@@ -78,33 +62,31 @@ class FeatureContext extends BehatContext
      */
     public function isDoneWith($object, $verb)
     {
-        $this->_lastResult = $this->_objects[$object]->$verb();
+        $this->lastResult = $this->objects[$object]->$verb();
     }
-
 
     /**
      * @Then /^It should have the result: (.+)$/
      */
     public function itShouldHaveTheResult($result)
     {
-        return $this->_lastResult = $result;
+        return $this->lastResult = $result;
     }
-
 
      /**
      * @Then /^"([^"]*)" should have tracked (\d+) calls$/
      */
     public function shouldHaveTrackedCalls($spy, $count)
     {
-        return $this->_objects[$spy]->getCallCount() == $count;
+        return $this->objects[$spy]->getCallCount() == $count;
     }
 
     /**
-     * @Then /^The (\d+)th call tracked by "([^"]*)" should be the call with the ([+-]?\d+)th learned secret$/
+     * @Then /^The ([+-]?\d+)th requested call tracked by "([^"]*)" should be its ([+-]?\d+)th tracked call$/
      */
-    public function theThCallTrackedByShouldBeTheCallWithTheThLearnedSecret($callIdx, $spy, $secretIdx)
+    public function theThRequestedCallTrackedByShouldBeItsThTrackedCall($requestIdx, $spy, $callIdx)
     {
-        return $this->_objects[$spy]->getCall($callIdx)->getArg(0) == "secret".$secretIdx;
+        return $this->objects[$spy]->getCall($requestIdx)->getArg(0) == $callIdx;
     }
 
     /**
@@ -112,7 +94,7 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByReceivedTheArgumentSecretAtPosition($spy, $arg, $argPos)
     {
-        return $this->_objects[$spy]->getCall(0)->getArg($argPos) == $arg;
+        return $this->objects[$spy]->getCall(0)->getArg($argPos) == $arg;
     }
 
     /**
@@ -120,7 +102,7 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByReturnedTheResult($spy, $result)
     {
-        return $this->_objects[$spy]->getCall(0)->getResult() == $result;
+        return $this->objects[$spy]->getCall(0)->getResult() == $result;
     }
 
     /**
@@ -128,7 +110,7 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByWasInTheContextOf($spy, $object)
     {
-        return $this->_objects[$spy]->getCall(0)->getContext() == $this->_objects[$object];
+        return $this->objects[$spy]->getCall(0)->getContext() == $this->objects[$object];
     }
 
 }

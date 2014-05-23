@@ -274,7 +274,7 @@ class Spy
             $this->_functionName,
             '',
             '$args = func_get_args();
-            return call_user_func_array(array($this, "'.$newOrigFuncName.'"), $args);'
+            return call_user_func_array("'.$newOrigFuncName.'", $args);'
         );
     }
 
