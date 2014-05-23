@@ -28,4 +28,29 @@ class SpyMethodFeatureContext extends BehatContext
     {
         $this->getMainContext()->objects[$spy] = new \christopheraue\phpspy\Spy($classname, $method);
     }
+
+    /**
+     * @When /^"([^"]*)" calls method "([^"]*)"(?: with: (.+))?$/
+     */
+    public function callsMethod($object, $method, $args)
+    {
+        $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
+        $this->getMainContext()->lastResult = call_user_func_array(
+            array($this->getMainContext()->objects[$object], $method),
+            $args
+        );
+    }
+
+    /**
+     * @When /^"([^"]*)" calls method "([^"]*)" (\d+) times(?: with: (.+))?$/
+     */
+    public function callsMethodMultipleTimes($object, $method, $counter, $args)
+    {
+        $results = array();
+        for ($idx=0; $idx<$counter; $idx++) {
+            $callArgs = str_replace(",", $idx.",", $args);
+            $results[] = $this->callsMethod($object, $method, $callArgs);
+        }
+        $this->getMainContext()->lastResult = implode("\n", $results);
+    }
 }

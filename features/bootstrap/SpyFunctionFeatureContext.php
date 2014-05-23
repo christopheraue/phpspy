@@ -49,5 +49,4 @@ class SpyFunctionFeatureContext extends BehatContext
         }
         $this->getMainContext()->lastResult = implode("\n", $results);
     }
-
 }

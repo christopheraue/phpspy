@@ -35,29 +35,6 @@ class FeatureContext extends BehatContext
     }
 
     /**
-     * @When /^"([^"]+)" ([^\s]+)s (\d+) ([^\s]+[^s])s?(?:: (.+))?$/
-     */
-    public function doesAThingMultipleTimes($subject, $verb, $counter, $object, $args)
-    {
-        $results = array();
-        for ($idx=0; $idx<$counter; $idx++) {
-            $callArgs = str_replace(",", $idx.",", $args);
-            $results[] = $this->doesAThing($subject, $verb, $object, $callArgs);
-        }
-        $this->lastResult = implode("\n", $results);
-    }
-
-     /**
-     * @When /^"([^"]+)" ([^\s]+)s the ([^\s]+)(?:: (.+))?$/
-     */
-    public function doesAThing($subject, $verb, $object, $args)
-    {
-        $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
-        $methodName = $verb.ucfirst($object);
-        $this->lastResult = call_user_func_array(array($this->objects[$subject], $methodName), $args);
-    }
-
-    /**
      * @When /^"([^"]*)" (?:is|was|has been) ([^\s]+[^ed])(?:ed)?$/
      */
     public function isDoneWith($object, $verb)
