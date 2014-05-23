@@ -13,97 +13,170 @@ class Spy
 {
     protected static $_spies = array();
 
-    protected $_classname = null;
-    protected $_methodname = null;
+    protected $_name = null;
+    protected $_context = null;
+    protected $_functionName = null;
+
+    protected $_origFuncSuffix = '_original';
+    protected $_spyFuncSuffix = '_spy';
+
     protected $_calls = array();
 
     /**
-     * Spy on a class' method
+     * Create a spy to spy on a function or a method
      *
-     * @param string $classname  The class which method to spy on
-     * @param string $methodname The name of the method to spy on
+     * @param string $context    A classname or a functioname to spy on
+     * @param string $methodName If $context is a classname, the name of the method to spy on
      */
-    public function __construct($classname, $methodname)
+    public function __construct($context, $methodName = null)
     {
+        if (func_num_args() == 1) {
+            $this->_initFunctionSpy($context);
+        } else {
+            $this->_initMethodSpy($context, $methodName);
+        }
+    }
 
+    protected function _initFunctionSpy($functionName)
+    {
+        $this->_functionName = strtolower($functionName);
+        $this->_name = $this->_functionName;
+        $this->_storeInRegister();
+        $this->_redirectCallToFunction();
+    }
+
+    protected function _initMethodSpy($classname, $methodname)
+    {
         if (!class_exists($classname)) {
             //try to load it via autoloading, or fail
             new $classname();
         }
 
-        //Sometimes $classname and $methodname are transfered to this constructer in all lower case
+        //Sometimes $classname and $methodname are transferred to this constructor in all lower case
         //although they were given in camel case. Strange behavior. Doesn't matter, since PHP
         //class and function names are case insensitive. Convert the names to all lower case.
-        $this->_classname = strtolower($classname);
-        $this->_methodname = strtolower($methodname);
+        $this->_context = strtolower($classname);
+        $this->_functionName = strtolower($methodname);
 
-        $spyName = $this->_classname.'::'.$this->_methodname;
+        $this->_name = $this->_context.'::'.$this->_functionName;
+        $this->_storeInRegister();
+        $this->_redirectCallToMethod();
+    }
 
-        if (array_key_exists($spyName, self::$_spies)) {
+    protected function _storeInRegister()
+    {
+        if (array_key_exists($this->_name, self::$_spies)) {
             /** @var \christopheraue\phpspy\Spy $spy */
-            $spy = self::$_spies[$spyName];
+            $spy = self::$_spies[$this->_name];
             $spy->kill();
         }
 
-        self::$_spies[$spyName] = $this;
-
-        $this->_replaceMethod();
+        self::$_spies[$this->_name] = $this;
     }
 
-    /**
-     * Replace the method to spy on
-     *
-     * @return void
-     */
-    protected function _replaceMethod()
+    protected function _redirectCallToMethod()
     {
+        $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
+        $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
         $spyClassname = __CLASS__;
+
         runkit_method_add(
-            $this->_classname,
-            $this->_methodname.'_spy',
+            $this->_context,
+            $spyFuncName,
             '',
             '$args = func_get_args();
-            $result = call_user_func_array(array($this, "'.$this->_methodname.'_original"), $args);
+            $result = call_user_func_array(array($this, "'.$newOrigFuncName.'"), $args);
 
-            $spy = '.$spyClassname.'::getSpy($this, "'.$this->_methodname.'");
+            $spy = '.$spyClassname.'::getSpy($this, "'.$this->_functionName.'");
             $result = $spy->recordCall($this, $args, $result);
 
             return $result;'
         );
 
-        if (!method_exists($this->_classname, $this->_methodname.'_original')) {
+        if (!method_exists($this->_context, $newOrigFuncName)) {
             runkit_method_copy(
-                $this->_classname,
-                $this->_methodname.'_original',
-                $this->_classname,
-                $this->_methodname
+                $this->_context,
+                $newOrigFuncName,
+                $this->_context,
+                $this->_functionName
             );
         }
 
         //keep memory address of function to prevent seg fault
         runkit_method_redefine(
-            $this->_classname,
-            $this->_methodname,
+            $this->_context,
+            $this->_functionName,
             '',
             '$args = func_get_args();
-            return call_user_func_array(array($this, "'.$this->_methodname.'_spy"), $args);'
+            return call_user_func_array(array($this, "'.$spyFuncName.'"), $args);'
+        );
+    }
+
+    protected function _redirectCallToFunction()
+    {
+        $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
+        $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
+        $spyClassname = __CLASS__;
+
+        runkit_function_add(
+            $spyFuncName,
+            '',
+            '$args = func_get_args();
+            $result = call_user_func_array("'.$newOrigFuncName.'", $args);
+
+            $spy = '.$spyClassname.'::getSpy("'.$this->_functionName.'");
+            $result = $spy->recordCall(null, $args, $result);
+
+            return $result;'
+        );
+
+        if (!function_exists($newOrigFuncName)) {
+            runkit_function_copy($this->_functionName, $newOrigFuncName);
+        }
+
+        //keep memory address of function to prevent seg fault
+        runkit_function_redefine(
+            $this->_functionName,
+            '',
+            '$args = func_get_args();
+            return call_user_func_array("'.$spyFuncName.'", $args);'
         );
     }
 
     /**
-     * @param object $instance   Context the function was called in
-     * @param string $methodname Name of the function
+     * Get a spy belonging to a function or method of a class or object
+     *
+     * @param object $context    Context the function was called in
+     * @param string $methodName Name of the function
      *
      * @return Spy
      */
-    public static function getSpy($instance, $methodname)
+    public static function getSpy($context, $methodName = null)
     {
-        $classname = strtolower(get_class($instance));
-        return self::$_spies[$classname.'::'.$methodname];
+        if (func_num_args() == 1) {
+            return self::_getFunctionSpy($context);
+        }
+
+        return self::_getMethodSpy($context, $methodName);
+    }
+
+    protected static function _getFunctionSpy($functionName)
+    {
+        return self::$_spies[$functionName];
+    }
+
+    protected static function _getMethodSpy($context, $methodName)
+    {
+        $className = $context;
+        if (is_object($className)) {
+            $className = strtolower(get_class($className));
+        }
+
+        return self::$_spies[$className.'::'.$methodName];
     }
 
     /**
-     * Save a call to the method
+     * Save a call to the method (for internal use only)
      *
      * @param mixed $context Context the function was called in
      * @param array $args    Arguments the function was called with
@@ -160,21 +233,53 @@ class Spy
     }
 
     /**
-     * Kill the spy
-     *
-     * @return void
+     * No longer spy on the function and restore everything at it was before
+     * the spying started
      */
     public function kill()
     {
-        runkit_method_remove($this->_classname, $this->_methodname.'_spy');
+        if ($this->_context) {
+            $this->_reverseMethodCallRedirection();
+        } else {
+            $this->_reverseFunctionCallRedirection();
+        }
+
+        $this->_deleteFromRegister();
+    }
+
+    protected function _reverseMethodCallRedirection()
+    {
+        $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
+        $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
+
+        runkit_method_remove($this->_context, $spyFuncName);
         //keep memory address of function to prevent seg fault
         runkit_method_redefine(
-            $this->_classname,
-            $this->_methodname,
+            $this->_context,
+            $this->_functionName,
             '',
             '$args = func_get_args();
-            return call_user_func_array(array($this, "'.$this->_methodname.'_original"), $args);'
+            return call_user_func_array(array($this, "'.$newOrigFuncName.'"), $args);'
         );
-        unset(self::$_spies[$this->_classname.'::'.$this->_methodname]);
+    }
+
+    protected function _reverseFunctionCallRedirection()
+    {
+        $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
+        $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
+
+        runkit_function_remove($spyFuncName);
+        //keep memory address of function to prevent seg fault
+        runkit_function_redefine(
+            $this->_functionName,
+            '',
+            '$args = func_get_args();
+            return call_user_func_array(array($this, "'.$newOrigFuncName.'"), $args);'
+        );
+    }
+
+    protected function _deleteFromRegister()
+    {
+        unset(self::$_spies[$this->_name]);
     }
 }
