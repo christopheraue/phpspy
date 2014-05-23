@@ -34,20 +34,20 @@ Add to your *composer.json*:
 Usage
 -----
 Constructor
-- to spy on methods: new \\christopheraue\\phpspy\\Spy($className, $methodName)
-- to spy on functions: new \\christopheraue\\phpspy\\Spy($functionName)
+- to spy on methods: `new \christopheraue\phpspy\Spy($className, $methodName)`
+- to spy on functions: `new \christopheraue\phpspy\Spy($functionName)`
 
 Public methods of the spy:
-* getCallCount(): Returns the number of recorded calls.
-* getCall($n): Returns the nth recorded call. Negative $n get calls from the back of the list.
-* reset(): Resets the spy by deleting all recorded calls.
-* kill(): Deletes all recorded calls, stops recording further calls and kills the spy.
+* `getCallCount()`: Returns the number of recorded calls.
+* `getCall($n)`: Returns the nth recorded call. Negative $n get calls from the back of the list.
+* `reset()`: Resets the spy by deleting all recorded calls.
+* `kill()`: Deletes all recorded calls, stops recording further calls and kills the spy.
 
 Calls are objects on their own. The have the following interface:
-* getArgCount(): Returns the number of recorded arguments
-* getArg($n): Returns the nth argument of the call. Negative $n get arguments from the back of the list.
-* getResult(): Returns the return value of the call.
-* getContext(): Returns `null` for functions and an object for methods
+* `getArgCount()`: Returns the number of recorded arguments
+* `getArg($n)`: Returns the nth argument of the call. Negative $n get arguments from the back of the list.
+* `getResult()`: Returns the return value of the call.
+* `getContext()`: Returns `null` for functions and for methods the object in which context they have been called.
 
 ### Basic Example
 #### Spying on methods
