@@ -16,6 +16,7 @@ class Spy
     protected $_name = null;
     protected $_context = null;
     protected $_functionName = null;
+    protected $_substitute = null;
 
     protected $_origFuncSuffix = '_original';
     protected $_spyFuncSuffix = '_spy';
@@ -106,24 +107,21 @@ class Spy
 
     protected function _getSpyFunctionBody()
     {
-        $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
         $isSpyingOnMethod = !!$this->_context;
 
         if ($isSpyingOnMethod) {
-            $callback = 'array($this, "'.$newOrigFuncName.'")';
+            $context = $this->_context;
             $getSpyParams = '$this, "'.$this->_functionName.'"';
         } else {
-            $callback = "\"$newOrigFuncName\"";
+            $context = null;
             $getSpyParams = "\"$this->_functionName\"";
         }
 
         return '$args = func_get_args();
-        $result = call_user_func_array('.$callback.', $args);
+        $context = '.($this->_context ? '$this' : 'null').';
 
         $spy = '.__CLASS__.'::getSpy('.$getSpyParams.');
-        $spy->recordCall(null, $args, $result);
-
-        return $result;';
+        return $spy->recordCall($context, $args);';
     }
 
     protected function _getReplaceFunctionBody()
@@ -179,14 +177,22 @@ class Spy
     /**
      * Save a call to the method (for internal use only)
      *
-     * @param mixed $context Context the function was called in
-     * @param array $args    Arguments the function was called with
-     * @param mixed $result  Return value of the call
+     * @param object|null $context For methods their instance, for function 'null'
+     * @param array       $args    Arguments the function was called with
      *
      * @return void
      */
-    public function recordCall($context, array $args, $result)
+    public function recordCall($context, array $args)
     {
+        $originalFuncName = $this->_functionName.$this->_origFuncSuffix;
+
+        $callable = $this->_substitute;
+        if (!$callable) {
+            $callable = $context ? array($context, $originalFuncName) : "$originalFuncName";
+        }
+
+        $result = call_user_func_array($callable, $args);
+
         $call = new Spy\Call($context, $args, $result);
         array_push($this->_calls, $call);
     }
@@ -231,6 +237,24 @@ class Spy
         }
 
         return $this->_calls[$idx];
+    }
+
+    /**
+     * Intercept calls to the actual implementation and call a substitute instead
+     *
+     * @param callable $callable
+     */
+    public function actAs(callable $callable)
+    {
+        $this->_substitute = $callable;
+    }
+
+    /**
+     * Use the actual implementation (again) if the spied on function is called
+     */
+    public function actNaturally()
+    {
+        $this->_substitute = null;
     }
 
     /**
