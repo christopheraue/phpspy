@@ -1,11 +1,13 @@
 PHP Spy
 =======
 
-Spy on functions and methods and track the arguments they were called with. The spy does not interfere with the default behavior of the code. So, spied functions are still executed.
+Spy on functions and methods and track the arguments they were called with. Unless calls are not delegated to another function the spy does not interfere with the default behavior of the code.
 
 Why?
 ----
-To make code testing more comfortable. Especially, if you just want to check, that a method was called and received the correct arguments.
+To make code testing more comfortable:
+* Check, that a function was called and received the correct arguments.
+* Replace functions with stubs or mocks.
 
 Requirements
 ------------
@@ -41,6 +43,8 @@ Public methods of the spy:
 * `getCallCount()`: Returns the number of recorded calls.
 * `getCall($n)`: Returns the nth recorded call. Negative $n get calls from the back of the list.
 * `reset()`: Resets the spy by deleting all recorded calls.
+* `actAs($callable)`: Delegates calls to a spied on function to another [callable](http://php.net/manual/en/language.types.callable.php).
+* `actNaturally()`: Delegates calls to the actual implementation of the spied on function (again).
 * `kill()`: Deletes all recorded calls, stops recording further calls and kills the spy.
 
 Calls are objects on their own. The have the following interface:
