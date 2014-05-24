@@ -2,8 +2,8 @@
 
 class Klass
 {
-    public function id($secret)
+    public function id($input)
     {
-        return $secret;
+        return $input;
     }
 }

@@ -35,6 +35,22 @@ class FeatureContext extends BehatContext
     }
 
     /**
+     * @Given /^"([^"]*)" delegates calls to function "([^"]*)"$/
+     */
+    public function delegatesCallsToMethodOfToFunction($spy, $function)
+    {
+        $this->getMainContext()->objects[$spy]->actAs($function);
+    }
+
+    /**
+     * @Given /^"([^"]*)" delegates calls to its actual implementation$/
+     */
+    public function delegatesCallsToItsActualImplementation($spy)
+    {
+        $this->getMainContext()->objects[$spy]->actNaturally();
+    }
+
+    /**
      * @When /^"([^"]*)" (?:is|was|has been) ([^\s]+[^ed])(?:ed)?$/
      */
     public function isDoneWith($object, $verb)
@@ -132,5 +148,4 @@ class FeatureContext extends BehatContext
             );
         }
     }
-
 }

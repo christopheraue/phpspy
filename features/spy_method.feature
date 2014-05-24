@@ -64,6 +64,21 @@ Feature: Spy for object methods
     When "spy" is reset
     Then "spy" should have tracked 0 calls
 
+  Scenario: Substitute a spied method
+    Given There is a function called "square" defined
+      And "spy" delegates calls to function "square"
+    When "klass" calls method "id" with: 2
+    Then It should have the result: 4
+      And The call tracked by "spy" returned the result "4"
+
+  Scenario: Revert substitution of a spied method
+    Given There is a function called "square" defined
+      And "spy" delegates calls to function "square"
+      And "spy" delegates calls to its actual implementation
+    When "klass" calls method "id" with: 2
+    Then It should have the result: 2
+      And The call tracked by "spy" returned the result "2"
+
   Scenario: Killing a spy that spied on a method leaves its behavior intact
     When "spy" is killed
       And "klass" calls method "id" with: 1
