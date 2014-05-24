@@ -53,7 +53,7 @@ Feature: Spy for object methods
 
   Scenario: Getting the result of a method
     When "klass" calls method "id" with: 1
-    Then The call tracked by "spy" returned the result "meaning of life = 42"
+    Then The call tracked by "spy" returned the result "1"
 
   Scenario: Getting the context a method was called in
     When "klass" calls method "id" with: 1

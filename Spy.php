@@ -118,7 +118,7 @@ class Spy
         }
 
         return '$args = func_get_args();
-        $context = '.($this->_context ? '$this' : 'null').';
+        $context = '.($isSpyingOnMethod ? '$this' : 'null').';
 
         $spy = '.__CLASS__.'::getSpy('.$getSpyParams.');
         return $spy->recordCall($context, $args);';
@@ -195,6 +195,8 @@ class Spy
 
         $call = new Spy\Call($context, $args, $result);
         array_push($this->_calls, $call);
+
+        return $result;
     }
 
     /**

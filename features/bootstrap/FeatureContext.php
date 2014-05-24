@@ -47,7 +47,11 @@ class FeatureContext extends BehatContext
      */
     public function itShouldHaveTheResult($result)
     {
-        return $this->lastResult = $result;
+        if ((string) $this->lastResult != $result) {
+            throw new Exception(
+                "Actual result is:\n".(string) $this->lastResult
+            );
+        }
     }
 
      /**
@@ -55,7 +59,12 @@ class FeatureContext extends BehatContext
      */
     public function shouldHaveTrackedCalls($spy, $count)
     {
-        return $this->objects[$spy]->getCallCount() == $count;
+        $actualCount = $this->objects[$spy]->getCallCount();
+        if ($actualCount != $count) {
+            throw new Exception(
+                "Actual count is:\n".$actualCount
+            );
+        }
     }
 
     /**
@@ -63,7 +72,13 @@ class FeatureContext extends BehatContext
      */
     public function theThRequestedCallTrackedByShouldBeItsThTrackedCall($requestIdx, $spy, $callIdx)
     {
-        return $this->objects[$spy]->getCall($requestIdx)->getArg(0) == $callIdx;
+        $requestCall = $this->objects[$spy]->getCall($requestIdx);
+        $actualCall = $this->objects[$spy]->getCall($callIdx);
+        if ($requestCall !== $actualCall) {
+            throw new Exception(
+                "Not equal"
+            );
+        }
     }
 
     /**
@@ -71,7 +86,12 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByReceivedArguments($spy, $argN)
     {
-        return $this->objects[$spy]->getCall(0)->getArgCount() == $argN;
+        $actualCount = $this->objects[$spy]->getCall(0)->getArgCount();
+        if ($actualCount != $argN) {
+            throw new Exception(
+                "Actual count is:\n".$actualCount
+            );
+        }
     }
 
     /**
@@ -79,7 +99,12 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByReceivedTheArgumentSecretAtPosition($spy, $arg, $argPos)
     {
-        return $this->objects[$spy]->getCall(0)->getArg($argPos) == $arg;
+        $actualArg = $this->objects[$spy]->getCall(0)->getArg($argPos);
+        if ($actualArg != $arg) {
+            throw new Exception(
+                "Actual argument is:\n".$actualArg
+            );
+        }
     }
 
     /**
@@ -87,7 +112,12 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByReturnedTheResult($spy, $result)
     {
-        return $this->objects[$spy]->getCall(0)->getResult() == $result;
+        $actualResult = $this->objects[$spy]->getCall(0)->getResult();
+        if ($actualResult != $result) {
+            throw new Exception(
+                "Actual result is:\n".$actualResult
+            );
+        }
     }
 
     /**
@@ -95,7 +125,12 @@ class FeatureContext extends BehatContext
      */
     public function theCallTrackedByWasInTheContextOf($spy, $object)
     {
-        return $this->objects[$spy]->getCall(0)->getContext() == $this->objects[$object];
+        $actualContext = $this->objects[$spy]->getCall(0)->getContext();
+        if ($actualContext !== $this->objects[$object]) {
+            throw new Exception(
+                "Actual context is:\n".($actualContext ? get_class($actualContext) : 'null')
+            );
+        }
     }
 
 }

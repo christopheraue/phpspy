@@ -26,7 +26,7 @@ class Call
      */
     public function __construct($context, $args, $result)
     {
-        $this->_context = $args;
+        $this->_context = $context;
         $this->_args = $args;
         $this->_result = $result;
     }
