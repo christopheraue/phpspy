@@ -1,7 +1,7 @@
 PHP Spy
 =======
 
-Track arguments and return values of calls to functions and methods. Spys do not interfere with the behavior of the code and delegate calls to the actual implementation of the spied on function by default. But, they can be configured to delegate calls to another function.
+Track arguments and return values of calls to functions and methods when you cannot use PHPUnit Mocks. Spys do not interfere with the behavior of the code and delegate calls to the actual implementation of the spied on function by default. But, they can be configured to delegate calls to another function.
 
 Requirements
 ------------
