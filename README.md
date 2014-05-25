@@ -1,13 +1,7 @@
 PHP Spy
 =======
 
-Spy on functions and methods and track the arguments they were called with. Unless calls are not delegated to another function the spy does not interfere with the default behavior of the code.
-
-Why?
-----
-To make code testing more comfortable:
-* Check, that a function was called and received the correct arguments.
-* Replace functions with stubs or mocks.
+Track arguments and return values of calls to functions and methods. Spys do not interfere with the behavior of the code and delegate calls to the actual implementation of the spied on function by default. But, they can be configured to delegate calls to another function.
 
 Requirements
 ------------
@@ -35,26 +29,7 @@ Add to your *composer.json*:
 
 Usage
 -----
-Constructor
-- to spy on methods: `new \christopheraue\phpspy\Spy($className, $methodName)`
-- to spy on functions: `new \christopheraue\phpspy\Spy($functionName)`
-
-Public methods of the spy:
-* `getCallCount()`: Returns the number of recorded calls.
-* `getCall($n)`: Returns the nth recorded call. Negative $n get calls from the back of the list.
-* `reset()`: Resets the spy by deleting all recorded calls.
-* `actAs($callable)`: Delegates calls to a spied on function to another [callable](http://php.net/manual/en/language.types.callable.php).
-* `actNaturally()`: Delegates calls to the actual implementation of the spied on function (again).
-* `kill()`: Deletes all recorded calls, stops recording further calls and kills the spy.
-
-Calls are objects on their own. The have the following interface:
-* `getArgCount()`: Returns the number of recorded arguments
-* `getArg($n)`: Returns the nth argument of the call. Negative $n get arguments from the back of the list.
-* `getResult()`: Returns the return value of the call.
-* `getContext()`: Returns `null` for functions and for methods the object in which context they have been called.
-
-### Basic Example
-#### Spying on methods
+### Spying on methods
 ```php
 class VIP
 {
@@ -76,7 +51,7 @@ echo $spy->getCall(0)->getArg(0);    //"The cake is a lie."
 echo $spy->getCall(0)->getContext(); //$vip
 ```
 
-#### Spying on functions
+### Spying on functions
 ```php
 function id($in)
 {
@@ -94,3 +69,23 @@ echo $spy->getCall->getArgCount();   //1
 echo $spy->getCall(1)->getResult();  //2
 echo $spy->getCall(0)->getContext(); //null
 ```
+
+Complete API
+------------
+### Constructor
+- to spy on methods: `new \christopheraue\phpspy\Spy($className, $methodName)`
+- to spy on functions: `new \christopheraue\phpspy\Spy($functionName)`
+
+### Interface of a spy:
+* `getCallCount()`: Returns the number of recorded calls.
+* `getCall($n)`: Returns the nth recorded call. Negative $n get calls from the back of the list.
+* `reset()`: Resets the spy by deleting all recorded calls.
+* `actAs($callable)`: Delegates calls to a spied on function to another [callable](http://php.net/manual/en/language.types.callable.php).
+* `actNaturally()`: Delegates calls to the actual implementation of the spied on function (again).
+* `kill()`: Deletes all recorded calls, stops recording further calls and kills the spy.
+
+### Interface of a call:
+* `getArgCount()`: Returns the number of recorded arguments
+* `getArg($n)`: Returns the nth argument of the call. Negative $n get arguments from the back of the list.
+* `getResult()`: Returns the return value of the call.
+* `getContext()`: Returns `null` for functions and for methods the object in which context they have been called.
