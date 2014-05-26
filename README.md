@@ -29,28 +29,6 @@ Add to your *composer.json*:
 
 Usage
 -----
-### Spying on methods
-```php
-class VIP
-{
-    private $_secret;
-
-    public function learnSecret($secret)
-    {
-        $this->_secret = $secret;
-    }
-}
-$vip = new VIP();
-
-$spy = new \christopheraue\phpspy\Spy("VIP", "learnSecret");
-
-$vip->learnSecret("The cake is a lie.")
-
-echo $spy->getCallCount();           //1
-echo $spy->getCall(0)->getArg(0);    //"The cake is a lie."
-echo $spy->getCall(0)->getContext(); //$vip
-```
-
 ### Spying on functions
 ```php
 function id($in)
@@ -70,11 +48,53 @@ echo $spy->getCall(1)->getResult();  //2
 echo $spy->getCall(0)->getContext(); //null
 ```
 
+### Spying on methods
+```php
+class VIP
+{
+    private $_secret;
+
+    public function learnSecret($secret)
+    {
+        $this->_secret = $secret;
+    }
+}
+$vip = new VIP();
+
+$spy = new \christopheraue\phpspy\Spy("VIP", "learnSecret");
+
+$vip->learnSecret("The cake is a lie.");
+
+echo $spy->getCallCount();           //1
+echo $spy->getCall(0)->getArg(0);    //"The cake is a lie."
+echo $spy->getCall(0)->getContext(); //$vip
+```
+
+### Spying on static methods
+```php
+class VIP
+{
+    public static function id($in)
+    {
+        return $in;
+    }
+}
+
+$spy = new \christopheraue\phpspy\Spy("VIP", "id");
+
+VIP::id("static, static, static.");
+
+echo $spy->getCallCount();           //1
+echo $spy->getCall(0)->getResult();  //"static, static, static."
+echo $spy->getCall(0)->getContext(); //"VIP"
+```
+
 Complete API
 ------------
 ### Constructor
-- to spy on methods: `new \christopheraue\phpspy\Spy($className, $methodName)`
-- to spy on functions: `new \christopheraue\phpspy\Spy($functionName)`
+To spy on
+* (static) methods: `new \christopheraue\phpspy\Spy($className, $methodName)`
+* functions: `new \christopheraue\phpspy\Spy($functionName)`
 
 ### Interface of a spy:
 * `getCallCount()`: Returns the number of recorded calls.
@@ -88,4 +108,4 @@ Complete API
 * `getArgCount()`: Returns the number of recorded arguments
 * `getArg($n)`: Returns the nth argument of the call. Negative $n get arguments from the back of the list.
 * `getResult()`: Returns the return value of the call.
-* `getContext()`: Returns `null` for functions and for methods the object in which context they have been called.
+* `getContext()`: Returns `null` for functions, an reference to the object for methods and the class name for static methods.
