@@ -79,15 +79,28 @@ class Spy
     {
         $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
         $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
+        $isStatic = (new \ReflectionMethod($this->_context, $this->_functionName))->isStatic();
 
-        runkit_method_add($this->_context, $spyFuncName, '',$this->_getSpyFunctionBody());
+        runkit_method_add(
+            $this->_context,
+            $spyFuncName,
+            '',
+            $this->_getSpyFunctionBody(),
+            RUNKIT_ACC_PRIVATE | ($isStatic ? RUNKIT_ACC_STATIC : 0)
+        );
 
         if (!method_exists($this->_context, $newOrigFuncName)) {
             runkit_method_copy($this->_context, $newOrigFuncName, $this->_context, $this->_functionName);
         }
 
         //keep memory address of function to prevent seg fault
-        runkit_method_redefine($this->_context, $this->_functionName, '', $this->_getReplaceFunctionBody());
+        runkit_method_redefine(
+            $this->_context,
+            $this->_functionName,
+            '',
+            $this->_getReplaceFunctionBody(),
+            RUNKIT_ACC_PUBLIC | ($isStatic ? RUNKIT_ACC_STATIC : 0)
+        );
     }
 
     protected function _redirectCallToFunction()
@@ -110,15 +123,21 @@ class Spy
         $isSpyingOnMethod = !!$this->_context;
 
         if ($isSpyingOnMethod) {
-            $context = $this->_context;
-            $getSpyParams = '$this, "'.$this->_functionName.'"';
+            $isStatic = (new \ReflectionMethod($this->_context, $this->_functionName))->isStatic();
+            if ($isStatic) {
+                $context = 'get_called_class()';
+                $getSpyParams = "'$this->_context', '$this->_functionName'";
+            } else {
+                $context = '$this';
+                $getSpyParams = '$this, "'.$this->_functionName.'"';
+            }
         } else {
-            $context = null;
-            $getSpyParams = "\"$this->_functionName\"";
+            $context = 'null';
+            $getSpyParams = "'$this->_functionName'";
         }
 
         return '$args = func_get_args();
-        $context = '.($isSpyingOnMethod ? '$this' : 'null').';
+        $context = '.$context.';
 
         $spy = '.__CLASS__.'::getSpy('.$getSpyParams.');
         return $spy->recordCall($context, $args);';
@@ -130,7 +149,12 @@ class Spy
         $isSpyingOnMethod = !!$this->_context;
 
         if ($isSpyingOnMethod) {
-            $spyCallback = 'array($this, "'.$spyFuncName.'")';
+            $isStatic = (new \ReflectionMethod($this->_context, $this->_functionName))->isStatic();
+            if ($isStatic) {
+                $spyCallback = 'array("'.$this->_context.'", "'.$spyFuncName.'")';
+            } else {
+                $spyCallback = 'array($this, "'.$spyFuncName.'")';
+            }
         } else {
             $spyCallback = "\"$spyFuncName\"";
         }
@@ -278,6 +302,13 @@ class Spy
     {
         $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
         $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
+        $isStatic = (new \ReflectionMethod($this->_context, $this->_functionName))->isStatic();
+
+        if ($isStatic) {
+            $origCallback = 'array("'.$this->_context.'", "'.$newOrigFuncName.'")';
+        } else {
+            $origCallback = 'array($this, "'.$newOrigFuncName.'")';
+        }
 
         runkit_method_remove($this->_context, $spyFuncName);
         //keep memory address of function to prevent seg fault
@@ -286,7 +317,8 @@ class Spy
             $this->_functionName,
             '',
             '$args = func_get_args();
-            return call_user_func_array(array($this, "'.$newOrigFuncName.'"), $args);'
+            return call_user_func_array('.$origCallback.', $args);',
+            RUNKIT_ACC_PUBLIC | ($isStatic ? RUNKIT_ACC_STATIC : 0)
         );
     }
 

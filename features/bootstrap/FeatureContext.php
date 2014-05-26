@@ -139,12 +139,12 @@ class FeatureContext extends BehatContext
     /**
      * @Then /^The call tracked by "([^"]*)" was in the context of "([^"]*)"$/
      */
-    public function theCallTrackedByWasInTheContextOf($spy, $object)
+    public function theCallTrackedByWasInTheContextOf($spy, $context)
     {
         $actualContext = $this->objects[$spy]->getCall(0)->getContext();
-        if ($actualContext !== $this->objects[$object]) {
+        if ($actualContext !== $this->objects[$context]) {
             throw new Exception(
-                "Actual context is:\n".($actualContext ? get_class($actualContext) : 'null')
+                "Actual context is:\n".($actualContext ? $actualContext : 'null')
             );
         }
     }

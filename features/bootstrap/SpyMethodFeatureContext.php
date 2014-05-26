@@ -13,11 +13,20 @@ class SpyMethodFeatureContext extends BehatContext
     }
 
     /**
+     * @Given /^There is a class "([^"]*)"$/
+     */
+    public function thereIsAClass($classname)
+    {
+        require_once dirname(__FILE__)."/$classname.php";
+        $this->getMainContext()->objects[$classname] = $classname;
+    }
+
+    /**
      * @Given /^There is an object "([^"]*)" derived from class "([^"]*)"/
      */
     public function thereIsAnObjectDerivedFromClass($objectname, $classname)
     {
-        require_once dirname(__FILE__)."/".$classname.".php";
+        $this->thereIsAClass($classname);
         $this->getMainContext()->objects[$objectname] = new $classname();
     }
 
