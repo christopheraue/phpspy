@@ -1,7 +1,10 @@
 PHP Spy
 =======
 
-Track arguments and return values of calls to functions and methods when you cannot use PHPUnit Mocks. Spys do not interfere with the behavior of the code and delegate calls to the actual implementation of the spied on function by default. But, they can be configured to delegate calls to another function.
+Track arguments and return values of calls to functions and methods when you
+cannot use PHPUnit Mocks. Spies do not interfere with the behavior of the code
+and delegate calls to the actual implementation of the spied on function by
+default. But, they can be configured to delegate calls to another function.
 
 Requirements
 ------------
@@ -29,7 +32,8 @@ Add to your *composer.json*:
 
 Usage
 -----
-### Spying on functions
+### Spying
+#### On functions
 ```php
 function id($in)
 {
@@ -48,7 +52,7 @@ echo $spy->getCall(1)->getResult();  //2
 echo $spy->getCall(0)->getContext(); //null
 ```
 
-### Spying on methods
+#### On methods
 ```php
 class VIP
 {
@@ -70,7 +74,7 @@ echo $spy->getCall(0)->getArg(0);    //"The cake is a lie."
 echo $spy->getCall(0)->getContext(); //$vip
 ```
 
-### Spying on static methods
+#### On static methods
 ```php
 class VIP
 {
@@ -89,6 +93,38 @@ echo $spy->getCall(0)->getResult();  //"static, static, static."
 echo $spy->getCall(0)->getContext(); //"VIP"
 ```
 
+### Stubbing
+Calls can be intercepted by giving the spy a substitute to execute instead.
+They are still tracked in this case. It works for functions and methods alike.
+
+```php
+function id($in)
+{
+    return $in;
+}
+
+$spy = new \christopheraue\phpspy\Spy("id");
+
+//substitute for an anonymous function
+$spy->actAs(function($in) {
+    //do something
+});
+
+//substitute for another function
+$spy->actAs('functionName');
+
+//substitute for a method
+$spy->actAs(array($object, 'method'));
+
+//call through again
+$spy->actNaturally();
+```
+
+All callables qualify as valid substitute. Anonymous functions are executed
+in the context of the methods they are replacing. This means
+* access to the scope resolution operator (`::`) using `parent`, `self` and `static`.
+* For objects, `$this` is defined and is pointing to the instance.
+
 Complete API
 ------------
 ### Constructor
@@ -98,14 +134,20 @@ To spy on
 
 ### Interface of a spy:
 * `getCallCount()`: Returns the number of recorded calls.
-* `getCall($n)`: Returns the nth recorded call. Negative $n get calls from the back of the list.
+* `getCall($n)`: Returns the nth recorded call. Negative $n get calls from
+  the back of the list.
 * `reset()`: Resets the spy by deleting all recorded calls.
-* `actAs($callable)`: Delegates calls to a spied on function to another [callable](http://php.net/manual/en/language.types.callable.php).
-* `actNaturally()`: Delegates calls to the actual implementation of the spied on function (again).
-* `kill()`: Deletes all recorded calls, stops recording further calls and kills the spy.
+* `actAs($callable)`: Delegates calls to a spied on function to another
+  [callable](http://php.net/manual/en/language.types.callable.php).
+* `actNaturally()`: Delegates calls to the actual implementation of the spied
+  on function (again).
+* `kill()`: Deletes all recorded calls, stops recording further calls and
+  kills the spy.
 
 ### Interface of a call:
 * `getArgCount()`: Returns the number of recorded arguments
-* `getArg($n)`: Returns the nth argument of the call. Negative $n get arguments from the back of the list.
+* `getArg($n)`: Returns the nth argument of the call. Negative $n get arguments
+  from the back of the list.
 * `getResult()`: Returns the return value of the call.
-* `getContext()`: Returns `null` for functions, an reference to the object for methods and the class name for static methods.
+* `getContext()`: Returns `null` for functions, an reference to the object for
+  methods and the class name for static methods.
