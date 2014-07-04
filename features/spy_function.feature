@@ -71,6 +71,13 @@ Feature: Spy for functions
     Then It should have the result: 4
       And The call tracked by "spy" returned the result "4"
 
+  Scenario: Substitute a spied function with a closure
+    Given "spy" delegates calls to a closure
+    When "id" is called with: 2
+    Then The call tracked by "spy" was in the context of "null"
+    And The call tracked by "spy" received the argument "2" at position 0
+    And The call tracked by "spy" returned the result "no context"
+
   Scenario: Revert substitution of a spied function
     Given There is a function called "square" defined
       And "spy" delegates calls to function "square"

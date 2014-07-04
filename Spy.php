@@ -16,6 +16,7 @@ class Spy
     protected $_name = null;
     protected $_context = null;
     protected $_functionName = null;
+    /** @var callable _substitute */
     protected $_substitute = null;
 
     protected $_origFuncSuffix = '_original';
@@ -210,11 +211,26 @@ class Spy
     {
         $originalFuncName = $this->_functionName.$this->_origFuncSuffix;
 
-        $callable = $this->_substitute;
-        if (!$callable) {
+        if ($this->isActingAs()) {
+            $isSpyingOnMethod = !!$context;
+
+            if ($this->_substitute instanceof \Closure) {
+                if ($isSpyingOnMethod) {
+                    //call closure in context of instance or class
+                    if (is_string($context)) {
+                        $callable = $this->_substitute->bindTo(null, $context);
+                    } else {
+                        $callable = $this->_substitute->bindTo($context, get_class($context));
+                    }
+                } else {
+                    $callable = $this->_substitute->bindTo(null, null);
+                }
+            } else {
+                $callable = $this->_substitute;
+            }
+        } else {
             $callable = $context ? array($context, $originalFuncName) : "$originalFuncName";
         }
-
         $result = call_user_func_array($callable, $args);
 
         $call = new Spy\Call($context, $args, $result);
@@ -273,6 +289,14 @@ class Spy
     public function actAs(callable $callable)
     {
         $this->_substitute = $callable;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isActingAs()
+    {
+        return !is_null($this->_substitute);
     }
 
     /**

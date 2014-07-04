@@ -43,6 +43,28 @@ class FeatureContext extends BehatContext
     }
 
     /**
+     * @Given /^"([^"]*)" delegates calls to a closure$/
+     */
+    public function delegatesCallsToAClosure($spy)
+    {
+        $mainContext = $this->getMainContext();
+        $mainContext->objects[$spy]->actAs(function() {
+            $classContext = get_called_class();
+
+            if (is_string($classContext)) {
+                if (isset($this)) {
+                    return $classContext . ' instance context';
+                }
+
+                return $classContext . ' static context';
+            }
+
+            return 'no context';
+        });
+    }
+
+
+    /**
      * @Given /^"([^"]*)" delegates calls to its actual implementation$/
      */
     public function delegatesCallsToItsActualImplementation($spy)

@@ -64,12 +64,19 @@ Feature: Spy for object methods
     When "spy" is reset
     Then "spy" should have tracked 0 calls
 
-  Scenario: Substitute a spied method
+  Scenario: Substitute a spied method with a function
     Given There is a function called "square" defined
       And "spy" delegates calls to function "square"
     When "klass" calls method "id" with: 2
     Then It should have the result: 4
       And The call tracked by "spy" returned the result "4"
+
+  Scenario: Substitute a spied method with a closure
+    Given "spy" delegates calls to a closure
+    When "klass" calls method "id" with: 2
+    Then The call tracked by "spy" was in the context of "klass"
+    And The call tracked by "spy" received the argument "2" at position 0
+    And The call tracked by "spy" returned the result "Klass instance context"
 
   Scenario: Revert substitution of a spied method
     Given There is a function called "square" defined

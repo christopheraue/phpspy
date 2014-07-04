@@ -71,6 +71,13 @@ Feature: Spy for a class' static methods
     Then It should have the result: 4
       And The call tracked by "spy" returned the result "4"
 
+  Scenario: Substitute a spied method with a closure
+    Given "spy" delegates calls to a closure
+    When "Klass" calls method "staticId" with: 2
+    Then The call tracked by "spy" was in the context of "Klass"
+    And The call tracked by "spy" received the argument "2" at position 0
+    And The call tracked by "spy" returned the result "Klass static context"
+
   Scenario: Revert substitution of a spied on method
     Given There is a function called "square" defined
       And "spy" delegates calls to function "square"
