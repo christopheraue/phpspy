@@ -204,7 +204,7 @@ class Spy
      * @param object|null $context For methods their instance, for function 'null'
      * @param array       $args    Arguments the function was called with
      *
-     * @return void
+     * @return mixed
      */
     public function recordCall($context, array $args)
     {
@@ -249,7 +249,7 @@ class Spy
      * @param int $idx Index indicating the nth call,
      * negative indices get call from the back of the list
      *
-     * @return array
+     * @return Spy\Call
      * @throws \Exception
      */
     public function getCall($idx)
