@@ -65,4 +65,16 @@ class SpyMethodFeatureContext extends BehatContext
         }
         $this->getMainContext()->lastResult = implode("\n", $results);
     }
+
+    /**
+     * @When /^"([^"]*)" calls the original function with instance "([^"]*)" with: (\d+)$/
+     */
+    public function callsTheOriginalFunctionWithInstanceWith($spyName, $instanceName, $args)
+    {
+        $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
+        /** @var \christopheraue\phpspy\Spy $spy */
+        $spy = $this->getMainContext()->objects[$spyName];
+        $instance = $this->getMainContext()->objects[$instanceName];
+        $this->getMainContext()->lastResult = $spy->callOriginal($args, $instance);
+    }
 }

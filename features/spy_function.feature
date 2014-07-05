@@ -90,3 +90,8 @@ Feature: Spy for functions
     When "spy" is killed
       And "id" is called with: 1
     Then It should have the result: 1
+
+  Scenario: Calling the spied on function without tracking
+    When "spy" calls the original function with: 1
+    Then It should have the result: 1
+    And "spy" should have tracked 0 calls

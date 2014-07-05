@@ -96,3 +96,8 @@ Feature: Spy for a class' static methods
     When There is a spy "spy" spying on method "staticId" of "InheritedKlass"
     And "InheritedKlass" calls method "staticId" with: 1
     Then It should have the result: 1
+  
+  Scenario: Calling the spied on function without tracking
+    When "spy" calls the original function with: 1
+    Then It should have the result: 1
+    And "spy" should have tracked 0 calls

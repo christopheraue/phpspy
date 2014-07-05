@@ -368,4 +368,32 @@ class Spy
     {
         unset(self::$_spies[$this->_name]);
     }
+
+    /**
+     * @param array $args Arguments to call the function with
+     * @param null|object $instance Instance in which context to call a non-static method
+     * @return mixed
+     * @throws \Exception
+     */
+    public function callOriginal(array $args = array(), $instance = null)
+    {
+        $origFuncName = $this->_functionName.$this->_origFuncSuffix;
+
+        if ($this->_context) {
+            $isStatic = (new \ReflectionMethod($this->_context, $origFuncName))->isStatic();
+
+            if ($isStatic) {
+                $origFunc = array($this->_context, $origFuncName);
+            } else {
+                if (!$instance) {
+                    throw new \Exception('Instance argument is missing to call a non-static method.');
+                }
+                $origFunc = array($instance, $origFuncName);
+            }
+        } else {
+            $origFunc = $origFuncName;
+        }
+
+        return call_user_func_array($origFunc, $args);
+    }
 }

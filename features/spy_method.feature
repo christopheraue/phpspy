@@ -96,3 +96,8 @@ Feature: Spy for object methods
     When There is a spy "spy" spying on method "id" of "InheritedKlass"
     And "inheritedKlass" calls method "id" with: 1
     Then It should have the result: 1
+
+  Scenario: Calling the spied on function without tracking
+    When "spy" calls the original function with instance "klass" with: 1
+    Then It should have the result: 1
+    And "spy" should have tracked 0 calls

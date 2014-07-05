@@ -173,4 +173,15 @@ class FeatureContext extends BehatContext
             );
         }
     }
+
+    /**
+     * @When /^"([^"]*)" calls the original function(?: with: (.+))?$/
+     */
+    public function callsTheOriginalFunctionWith($spyName, $args)
+    {
+        $args = explode(",", preg_replace('/\s*,\s*/', ',', $args));
+        /** @var \christopheraue\phpspy\Spy $spy */
+        $spy = $this->objects[$spyName];
+        $this->lastResult = $spy->callOriginal($args);
+    }
 }

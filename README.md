@@ -141,6 +141,11 @@ To spy on
   [callable](http://php.net/manual/en/language.types.callable.php).
 * `actNaturally()`: Delegates calls to the actual implementation of the spied
   on function (again).
+* `callOriginal($args = array(), $instance = null)`: Calls the original function
+  without tracking the call. Arguments can be passed to the original function by
+  passing an array with them as first argument. If the original function is a
+  non-static method the second argument must carry the instance in which context
+  it will be called.
 * `kill()`: Deletes all recorded calls, stops recording further calls and
   kills the spy.
 
