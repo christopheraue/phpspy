@@ -81,6 +81,8 @@ class Spy
         $newOrigFuncName = $this->_functionName.$this->_origFuncSuffix;
         $spyFuncName = $this->_functionName.$this->_spyFuncSuffix;
         $isStatic = (new \ReflectionMethod($this->_context, $this->_functionName))->isStatic();
+        $isInherited = !method_exists($this->_context, $this->_functionName)
+            && method_exists(get_parent_class($this->_context), $this->_functionName);
 
         runkit_method_add(
             $this->_context,
@@ -95,7 +97,8 @@ class Spy
         }
 
         //keep memory address of function to prevent seg fault
-        runkit_method_redefine(
+        $runkit_method_modifier = $isInherited ? 'runkit_method_add' : 'runkit_method_redefine';
+        $runkit_method_modifier(
             $this->_context,
             $this->_functionName,
             '',

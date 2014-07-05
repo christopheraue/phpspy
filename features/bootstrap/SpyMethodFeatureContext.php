@@ -35,6 +35,9 @@ class SpyMethodFeatureContext extends BehatContext
      */
     public function thereIsASpySpyingOnMethodOf($spy, $method, $classname)
     {
+        if (array_key_exists($spy, $this->getMainContext()->objects)) {
+            $this->getMainContext()->objects[$spy]->kill();
+        }
         $this->getMainContext()->objects[$spy] = new \christopheraue\phpspy\Spy($classname, $method);
     }
 

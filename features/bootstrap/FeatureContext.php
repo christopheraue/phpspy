@@ -49,7 +49,10 @@ class FeatureContext extends BehatContext
     {
         $mainContext = $this->getMainContext();
         $mainContext->objects[$spy]->actAs(function() {
+            error_reporting(E_ERROR | E_PARSE);
+            //throws a warning, if called outside a class
             $classContext = get_called_class();
+            error_reporting(E_ALL);
 
             if (is_string($classContext)) {
                 if (isset($this)) {

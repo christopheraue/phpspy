@@ -71,7 +71,7 @@ Feature: Spy for functions
     Then It should have the result: 4
       And The call tracked by "spy" returned the result "4"
 
-  Scenario: Substitute a spied function with a closure
+  Scenario: Substitute a spied function for a closure
     Given "spy" delegates calls to a closure
     When "id" is called with: 2
     Then The call tracked by "spy" was in the context of "null"

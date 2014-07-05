@@ -71,7 +71,7 @@ Feature: Spy for a class' static methods
     Then It should have the result: 4
       And The call tracked by "spy" returned the result "4"
 
-  Scenario: Substitute a spied method with a closure
+  Scenario: Substitute a spied method for a closure
     Given "spy" delegates calls to a closure
     When "Klass" calls method "staticId" with: 2
     Then The call tracked by "spy" was in the context of "Klass"
@@ -89,4 +89,10 @@ Feature: Spy for a class' static methods
   Scenario: Killing a spy that spied on a static method leaves its behavior intact
     When "spy" is killed
       And "Klass" calls method "staticId" with: 1
+    Then It should have the result: 1
+
+  Scenario: Spying on an inherited method
+    Given There is a class "InheritedKlass"
+    When There is a spy "spy" spying on method "staticId" of "InheritedKlass"
+    And "InheritedKlass" calls method "staticId" with: 1
     Then It should have the result: 1

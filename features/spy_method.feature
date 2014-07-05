@@ -64,7 +64,7 @@ Feature: Spy for object methods
     When "spy" is reset
     Then "spy" should have tracked 0 calls
 
-  Scenario: Substitute a spied method with a function
+  Scenario: Substitute a spied method for a function
     Given There is a function called "square" defined
       And "spy" delegates calls to function "square"
     When "klass" calls method "id" with: 2
@@ -89,4 +89,10 @@ Feature: Spy for object methods
   Scenario: Killing a spy that spied on a method leaves its behavior intact
     When "spy" is killed
       And "klass" calls method "id" with: 1
+    Then It should have the result: 1
+
+  Scenario: Spying on an inherited method
+    Given There is an object "inheritedKlass" derived from class "InheritedKlass"
+    When There is a spy "spy" spying on method "id" of "InheritedKlass"
+    And "inheritedKlass" calls method "id" with: 1
     Then It should have the result: 1
